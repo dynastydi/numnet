@@ -22,10 +22,10 @@ class net:
         # weights mapping between layers ( from, to ):
         # array dimensions are FROM by TO
         # initialised values are of uniform distributions between:
-        #           -1 / sqrt(FROM) and 1 / sqrt(FROM)
-        self.h_weights = (np.random.random((hidden, input)) - 0.5) * (2 / np.sqrt(input))
-        self.o_weights = (np.random.random((output, hidden)) - 0.5) * 2 / np.sqrt(hidden)
-    
+        #           -0.05 and 0.05
+        self.h_weights = (np.random.random((hidden, input)) - 0.5).astype(np.single) / 10
+        self.o_weights = (np.random.random((output, hidden)) - 0.5).astype(np.single) / 10
+
     def predict(self, data):
         h_out = sigmoid(self.h_weights.dot(data))
         o_out = sigmoid(self.o_weights.dot(h_out))
@@ -43,13 +43,8 @@ class net:
         h_errors = np.transpose(self.o_weights).dot(o_errors)
         
         # backpropagate
-        
-        o_mult = np.expand_dims(o_errors * prime(o_out), 1)
-        o_trans = np.expand_dims(h_out, 0)
-        self.o_weights += self.learning_rate * o_mult.dot(o_trans)
-        h_mult = np.expand_dims(h_errors * prime(h_out), 0)
-        h_trans = np.expand_dims(in_data, 1)
-        self.h_weights += self.learning_rate * np.transpose(h_trans.dot(h_mult))
+        self.o_weights += self.learning_rate * (o_errors * prime(o_out)).dot(np.transpose(h_out))
+        self.h_weights += self.learning_rate * (h_errors * prime(h_out)).dot(np.transpose(in_data))
 
     def save(self, h_path, o_path):
         np.save(h_path, self.h_weights)
