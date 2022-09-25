@@ -27,9 +27,9 @@ def mnist_train(net):
     now = time.time()
     for row in csv.reader(open('mnist/mnist_train.csv'), delimiter=','):
         # set target neuron values
-        targets = np.array(([[0.01]] * 10)).astype(np.single)
-        targets[int(row[0]), 0] = 0.99
-        values = np.array([[i] for i in row[1:]]).astype(np.single) / 255.0
+        targets = np.array(([0.01] * 10), ndmin=2).astype(float)
+        targets[0, int(row[0])] = 0.99
+        values = np.array(row[1:], ndmin=2).astype(float) / 255.0
 
         net.train(values, targets)
 
@@ -43,9 +43,9 @@ def mnist_test(net):
     tot = 0
     for row in csv.reader(open('mnist/mnist_test.csv'), delimiter=','):
         
-        targets = np.array(([[0.01]] * 10)).astype(np.single)
-        targets[int(row[0]), 0] = 0.99
-        values = np.array([[i] for i in row[1:]]).astype(np.single) / 255.0
+        targets = np.array(([0.01] * 10), ndmin=2).astype(float)
+        targets[0, int(row[0])] = 0.99
+        values = np.array(row[1:], ndmin=2).astype(float) / 255.0
 
         _, out = net.predict(values)
         

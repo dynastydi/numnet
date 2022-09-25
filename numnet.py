@@ -7,28 +7,22 @@ def sigmoid(data):
     
     return 1 / (1 + np.exp(- data))
 
-def prime(data):
-    return data * (1 - data)
-
 # the network as an object.
 
 class net:
     def __init__(self, input : int, hidden : int, output : int, learning_rate):
-        self.input = input
-        self.hidden = hidden
-        self.output = output
         self.learning_rate = learning_rate
 
         # weights mapping between layers ( from, to ):
         # array dimensions are FROM by TO
         # initialised values are of uniform distributions between:
         #           -0.05 and 0.05
-        self.h_weights = (np.random.random((hidden, input)) - 0.5).astype(np.single) / 10
-        self.o_weights = (np.random.random((output, hidden)) - 0.5).astype(np.single) / 10
+        self.h_weights = (np.random.random((input, hidden)) - 0.5).astype(float) / 10
+        self.o_weights = (np.random.random((hidden, output)) - 0.5).astype(float) / 10
 
     def predict(self, data):
-        h_out = sigmoid(self.h_weights.dot(data))
-        o_out = sigmoid(self.o_weights.dot(h_out))
+        h_out = sigmoid(data.dot(self.h_weights))
+        o_out = sigmoid(h_out.dot(self.o_weights))
         return h_out, o_out
 
     def train(self, in_data, targ_data):
@@ -37,14 +31,15 @@ class net:
         
         h_out, o_out = self.predict(in_data)
 
-        # output errors
-        o_errors = targ_data - o_out
-        # hidden errors through the dot product
-        h_errors = np.transpose(self.o_weights).dot(o_errors)
-        
-        # backpropagate
-        self.o_weights += self.learning_rate * (o_errors * prime(o_out)).dot(np.transpose(h_out))
-        self.h_weights += self.learning_rate * (h_errors * prime(h_out)).dot(np.transpose(in_data))
+
+        o_errors = o_out - targ_data    # output errors
+        h_errors = o_errors.dot(self.o_weights.T) * h_out
+
+        o_gradient = h_out.T.dot(o_errors)
+        h_gradient = in_data.T.dot(h_errors)
+
+        self.o_weights -= self.learning_rate * o_gradient
+        self.h_weights -= self.learning_rate * h_gradient
 
     def save(self, h_path, o_path):
         np.save(h_path, self.h_weights)
